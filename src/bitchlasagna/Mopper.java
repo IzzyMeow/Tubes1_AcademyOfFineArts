@@ -2,6 +2,6 @@ package bitchlasagna;
 
 import battlecode.common.*;
 
-public class Mopper {
+public class Mopper extends Robot {
     
 }

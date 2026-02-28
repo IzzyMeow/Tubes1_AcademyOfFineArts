@@ -2,6 +2,6 @@ package bitchlasagna;
 
 import battlecode.common.*;
 
-public class Splasher extends Robot {
+public class Robot {
     
 }
