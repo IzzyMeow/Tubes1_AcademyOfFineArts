@@ -2,6 +2,6 @@ package bitchlasagna;
 
 import battlecode.common.*;
 
-public class Soldier {
+public class Soldier extends Robot {
     
 }
