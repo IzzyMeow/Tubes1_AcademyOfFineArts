@@ -21,16 +21,16 @@ public class RobotPlayer {
             try {
                 switch (rc.getType()) {
                     case SOLDIER:
-                        Soldier.run(rc);  // not implemented
+                        runSoldier(rc);  // not implemented
                         break;
                     case MOPPER:
-                        Mopper.run(rc);  // not implemented
+                        runMopper(rc);  // not implemented
                         break;
                     case SPLASHER:
-                        Splasher.run(rc);  // not implemented
+                        runSplasher(rc);  // not implemented
                         break;
                     default:
-                        Tower.run(rc); // not implemented
+                        runTower(rc); // not implemented
                         break;
                 }
             } catch (GameActionException e) {
@@ -46,5 +46,22 @@ public class RobotPlayer {
         }
     }
     
+    public static void runSoldier(RobotController rc) throws GameActionException {
+        System.out.println("runSoldier");  // delete this
+    }
+
+    public static void runMopper(RobotController rc) throws GameActionException {
+        System.out.println("runMopper");  // delete this
+    }
+
+    public static void runSplasher(RobotController rc) throws GameActionException {
+        System.out.println("runSplasher");  // delete this
+    }
+
+    public static void runTower(RobotController rc) throws GameActionException {
+        System.out.println("runTower");  // delete this
+
+        rc.getRoundNum();
+    }
 
 }
