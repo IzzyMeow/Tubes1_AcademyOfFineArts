@@ -25,6 +25,7 @@ public class Mopper extends Robot {
 
     // Penggunaan Skill Mopper
     private static void mopperAction(RobotController rc) throws GameActionException {
+        MapLocation myLoc = rc.getLocation();
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots(2);
         RobotInfo healTarget = null;
         RobotInfo enemyTarget = null;
@@ -34,7 +35,7 @@ public class Mopper extends Robot {
         // Pencarian robot teman dengan paint terdikit & robot musuh dengan paint terbanyak
         for (RobotInfo robot : nearbyRobots) {
             if (robot.getTeam() == rc.getTeam()) {
-                if (robot.getType() != RobotType.Mopper && robot.getPaintAmount() < minPaintAlly) {
+                if (robot.getType() != UnitType.MOPPER && robot.getPaintAmount() < minPaintAlly) {
                     minPaintAlly = robot.getPaintAmount();
                     healTarget = robot;
                 }
@@ -48,52 +49,58 @@ public class Mopper extends Robot {
 
         // Heal teman sebisa mungkin
         // TODO: canTransferPaint(location, paintUsed) plssss
-        if (healTarget != null && rc.getPaintAmount() > 30 && rc.canTransferPaint(healTarget.getLocation(), -20)) {
+        if (healTarget != null && rc.getPaint() > 30 && rc.canTransferPaint(healTarget.getLocation(), -20)) {
             // TODO: transferPaint(location, paintUsed)
             rc.transferPaint(healTarget.getLocation(), 20);
             return;
         }
 
         // TODO: canMop(location)
-        if (enemyTarget != null && rc.canMop(enemyTarget.getLocation())) {
-            rc.mop(enemyTarget.getLocation());
+        if (enemyTarget != null) {
+            MapLocation enemyLoc = enemyTarget.getLocation();
+            if (rc.canAttack(enemyLoc)) {
+                rc.attack(enemyLoc);
+            }
         }
     }
 
     // Fungsi Menentukan Pergerakan (Target: menjaga perbatasan)
     private static void moveToPerimeter(RobotController rc) throws GameActionException {
         MapLocation myLoc = rc.getLocation();
-        Direction bestDirection = null;
+        Direction bestDir = null;
         int maxScore = -9999;
+        RobotInfo[] allAllies = rc.senseNearbyRobots(20, rc.getTeam());
+        MapInfo[] allMapInfos = rc.senseNearbyMapInfos(20);
 
         //  TODO: allDirections()
-        for (Direction dir : Direction.allDirections()) {
-            if (dir == Direction.center || !rc.canMove(dir)) continue;
+        for (Direction dir : Constants.DIRECTIONS) {
+            if (dir == Direction.CENTER || !rc.canMove(dir)) continue;
 
             MapLocation nextLoc = myLoc.add(dir);
             MapInfo nextLocInfo = rc.senseMapInfo(nextLoc);
 
-            if (nextLocInfo.getPaint() != rc.getTeam() && nextLocInfo.getPaint() != PaintType.empty) continue;
+            if (nextLocInfo.getPaint().isEnemy() && nextLocInfo.getPaint() != PaintType.EMPTY) continue;
 
             int currScore = 0;
 
-            if (nextLocInfo.getPaint() == rc.getTeam()) {
+            if (nextLocInfo.getPaint().isAlly()) {
                 currScore += 10;
             }
 
-            RobotInfo[] robotsNearNextLoc = rc.senseNearbyRobots(nextLoc, 2, rc.getTeam());
-            for (RobotInfo ally : robotsNearNextLoc) {
-                if (ally.getType() != RobotType.Mopper && ally.getPaintAmount() < 50) {
-                    currScore += 50;
+            for (RobotInfo ally : allAllies) {
+                if (nextLoc.distanceSquaredTo(ally.getLocation()) <= 2) {
+                    if (ally.getType() != UnitType.MOPPER && ally.getPaintAmount() < 50) {
+                        currScore += 50;
+                    }
                 }
             }
 
             // TODO: senseNearbyLocations(location, radius)
-            MapLocation[] adjTiles = rc.senseNearbyLocations(nextLoc, 2);
-            for (MapLocation adj : adjTiles) {
-                MapInfo adjInfo = rc.senseMapInfo(adj);
-                if (adjInfo.getPaint() == PaintType.EMPTY || adjInfo.getPaint() != rc.getTeam()) {
-                    currScore += 5;
+            for (MapInfo adjInfo : allMapInfos) {
+                if (nextLoc.distanceSquaredTo(adjInfo.getMapLocation()) <= 2) {
+                    if (adjInfo.getPaint() == PaintType.EMPTY || adjInfo.getPaint().isEnemy()) {
+                        currScore += 5;
+                    }
                 }
             }
 

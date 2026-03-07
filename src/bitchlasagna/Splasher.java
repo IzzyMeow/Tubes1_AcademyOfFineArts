@@ -25,32 +25,38 @@ public class Splasher extends Robot {
 
     // Fungsi Throw Splash ke Tower (Tower adalah Koentji)
     private static void splashTower(RobotController rc) throws GameActionException {
-        MapLocation[] centerCandidates = rc.senseNearbyLocations(4);
+        MapInfo[] centerCandidates = rc.senseNearbyMapInfos(4);
         MapLocation bestTarget = null;
         int maxScore = -1;
+        RobotInfo[] allNearbyRobots = rc.senseNearbyRobots(20);
+        MapInfo[] allMapInfos = rc.senseNearbyMapInfos(20);
 
-        for (MapLocation center : centerCandidates) {
+        for (MapInfo centerInfo : centerCandidates) {
+            MapLocation center = centerInfo.getMapLocation();
+
             if (rc.canAttack(center)) {
                 int currScore = 0;
-                RobotInfo[] robotsInSplash = rc.senseNearbyRobots(center, 4);
 
-                for (RobotInfo robot : robotsInSplash) {
-                    if (robot.getTeam() != rc.getTeam()) {
-                        if (robot.getType().isTowerType()) {
-                            currScore += 1000;
-                        } else if (center.distanceSquaredTo(robot.getLocation() <= 2)) {
-                            currScore += 20;
+                for (RobotInfo unit : allNearbyRobots) {
+                    if (center.distanceSquaredTo(unit.getLocation()) <= 4) {
+                        if (unit.getTeam() != rc.getTeam()) {
+                            if (unit.getType().isTowerType()) {
+                                currScore += 1000;
+                            } else if (center.distanceSquaredTo(unit.getLocation()) <= 2) {
+                                currScore += 20;
+                            }
                         }
                     }
                 }
 
-                MapLocation[] tilesInSplash = rc.senseNearbyLocations(center, 4);
-                for (MapLocation tile : tilesInSplash) {
-                    MapInfo tileInfo = rc.senseMapInfo(tile);
+                for (MapInfo tileInfo : allMapInfos) {
+                    MapLocation tileLoc = tileInfo.getMapLocation();
 
-                    if (tileInfo.getPaint() != rc.getTeam()) {
-                        if (tileInfo.getPaint() != PaintType.EMPTY && center.distanceSquaredTo(tile) <= 2) {
-                            currScore += 5
+                    if (center.distanceSquaredTo(tileLoc) <= 4) {
+                        if (tileInfo.getPaint().isEnemy()) {
+                            if (center.distanceSquaredTo(tileLoc) <= 2) {
+                                currScore += 5;
+                            }
                         } else if (tileInfo.getPaint() == PaintType.EMPTY) {
                             currScore += 2;
                         }
@@ -73,11 +79,11 @@ public class Splasher extends Robot {
         MapLocation myLoc = rc.getLocation();
         Direction bestDir = null;
         int minDist = 99999;
-        RobotInfo[] visibleEnemies = rc.senseNearbyLocations(20, rc.getTeam().opponent());
+        RobotInfo[] visibleEnemies = rc.senseNearbyRobots(20, rc.getTeam().opponent());
         MapLocation targetLoc = null;
 
         for (RobotInfo enemy : visibleEnemies) {
-            if (enemy.getType().isTower()) {
+            if (enemy.getType().isTowerType()) {
                 targetLoc = enemy.getLocation();
                 break;
             }
@@ -87,8 +93,8 @@ public class Splasher extends Robot {
             targetLoc = visibleEnemies[0].getLocation();
         }
 
-        for (Direction dir : Direction.v()) {
-            if (dir == Direction.center || !rc.canMove(dir)) continue;
+        for (Direction dir : Constants.DIRECTIONS) {
+            if (dir == Direction.CENTER || !rc.canMove(dir)) continue;
 
             MapLocation nextLoc = myLoc.add(dir);
 
@@ -100,7 +106,7 @@ public class Splasher extends Robot {
                 }
             } else {
                 MapInfo nextInfo = rc.senseMapInfo(nextLoc);
-                if (nextInfo == PaintType.EMPTY || nextInfo.getPaint() != rc.getTeam()) {
+                if (nextInfo.getPaint() == PaintType.EMPTY || nextInfo.getPaint().isEnemy()) {
                     bestDir = dir;
                     break;
                 }
