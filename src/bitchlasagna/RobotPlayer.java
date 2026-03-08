@@ -13,6 +13,10 @@ public class RobotPlayer {
     static int turnCount = 0;
     static int spawnCount = 0;
 
+    static MapInfo enemyTower = null;
+    static MapInfo enemyTile = null;
+    static Soldier.SoldierState soldierState = Soldier.SoldierState.ADVANCE;
+
     public static void run(RobotController rc) throws GameActionException {
         System.out.println("runn");  // delete this
 
@@ -64,8 +68,9 @@ public class RobotPlayer {
         
         if (rc.getRoundNum() == 1) {
             // spawn a soldier bot
-            Tower.createSoldier(rc);
-            spawnCount++;
+            for (Direction dir : Constants.DIRECTIONS) {
+                Tower.createSoldier(rc, dir);
+            }
         } else {
             
         }

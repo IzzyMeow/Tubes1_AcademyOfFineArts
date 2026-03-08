@@ -8,7 +8,15 @@ import battlecode.common.*;
 public class Robot {
     // low paint = penalty cooldown; tolerate 40% for further robots
     public static boolean hasLowPaint(RobotController rc, int percentage) {
-        if (rc.getPaint() < (rc.getType().paintCapacity)*percentage) {
+        if (rc.getPaint() < (rc.getType().paintCapacity) * percentage / 100) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean hasLowHealth(RobotController rc, int percentage) {
+        if (rc.getHealth() < (rc.getType().health) * percentage / 100) {
             return true;
         } else {
             return false;

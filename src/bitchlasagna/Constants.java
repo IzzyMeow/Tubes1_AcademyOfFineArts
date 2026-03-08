@@ -28,4 +28,7 @@ public class Constants {
     public static final int ENEMY_PAINT_MOVE_LOSS = 2;
     public static final int EMPTY_PAINT_MOVE_LOSS = 1;
 
+    public static final int RETREAT_HEALTH_PERCENTAGE = 25;
+    public static final int RETREAT_PAINT_PERCENTAGE = 20;
+
 }
