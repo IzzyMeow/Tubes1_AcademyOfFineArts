@@ -25,7 +25,25 @@ public class Tower {
         }
     }
 
-    // public static boolean startSquareCovered(RobotController rc) throws GameActionException {
-    //     return rc.senseMapInfo(rc.getLocation().add(spawnDirection)).getPaint().isEnemy();
-    // }
+    public static boolean isStartSquareCovered(RobotController rc, Direction spawnDirection) throws GameActionException {
+        return rc.senseMapInfo(rc.getLocation().add(spawnDirection)).getPaint().isEnemy();
+    }
+
+    // attack lowest HP robot
+    public static void attackLowestRobot(RobotController rc) throws GameActionException {
+        RobotInfo target = Sensing.findNearestLowestHP(rc);
+        if (target != null) {
+            if (rc.canAttack(target.getLocation())) {
+                rc.attack(target.getLocation());
+            }
+        }
+    }
+
+    // tower do AOE attack
+    public static void aoeAttack(RobotController rc) throws GameActionException {
+        if (rc.canAttack(null)) {
+            rc.attack(null);
+        }
+    }
+
 }
