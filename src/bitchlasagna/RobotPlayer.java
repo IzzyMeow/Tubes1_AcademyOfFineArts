@@ -11,6 +11,7 @@ import java.util.Set;
 
 public class RobotPlayer {
     static int turnCount = 0;
+    static int spawnCount = 0;
 
     public static void run(RobotController rc) throws GameActionException {
         System.out.println("runn");  // delete this
@@ -60,8 +61,14 @@ public class RobotPlayer {
 
     public static void runTower(RobotController rc) throws GameActionException {
         System.out.println("runTower");  // delete this
-
-        rc.getRoundNum();
+        
+        if (rc.getRoundNum() == 1) {
+            // spawn a soldier bot
+            Tower.createSoldier(rc);
+            spawnCount++;
+        } else {
+            
+        }
     }
 
 }
