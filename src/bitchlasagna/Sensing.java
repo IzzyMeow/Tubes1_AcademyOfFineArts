@@ -11,8 +11,7 @@ public class Sensing {
      * Mencari enemy dengan HP terendah dalam action radius yang bisa diserang.
      * Mengembalikan null jika tidak ada enemy dalam jangkauan.
      */
-    public static RobotInfo findNearestLowestHP(RobotController rc) throws GameActionException
-    {
+    public static RobotInfo findNearestLowestHP(RobotController rc) throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         RobotInfo targetBot = null;
         int minHealth = Constants.UNSET_DISTANCE;
@@ -30,8 +29,7 @@ public class Sensing {
      * Mengecek apakah pattern tower masih perlu diisi.
      * Mengembalikan true jika ada tile kosong atau paint ally yang tidak sesuai mark.
      */
-    public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException
-    {
+    public static boolean needFilling(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo tile : rc.senseNearbyMapInfos(towerLocation, Constants.RUIN_PATTERN_RADIUS_SQUARED)) {
             if (!tile.hasRuin() && (tile.getPaint() == PaintType.EMPTY ||
                     tile.getPaint().isAlly() && tile.getMark() != tile.getPaint())) {
@@ -45,8 +43,7 @@ public class Sensing {
      * Mengecek apakah semua tile pada pattern sudah valid untuk membangun tower.
      * Mengembalikan false jika ada tile kosong, paint/mark tidak cocok, enemy paint, atau ada robot di ruin.
      */
-    public static boolean canBuildTower(RobotController rc, MapLocation towerLocation) throws GameActionException
-    {
+    public static boolean canBuildTower(RobotController rc, MapLocation towerLocation) throws GameActionException {
         for (MapInfo tile : rc.senseNearbyMapInfos(towerLocation, Constants.RUIN_PATTERN_RADIUS_SQUARED)) {
             if (tile.hasRuin()) {
                 if (rc.canSenseRobotAtLocation(tile.getMapLocation())) {
@@ -62,34 +59,10 @@ public class Sensing {
     }
 
     /**
-     * Mencari ruin terdekat dari posisi robot pada nearbyTiles.
-     * Mengembalikan null jika tidak ada ruin valid yang bisa dipakai.
-     */
-    public static MapInfo findClosestRuin(RobotController rc, MapLocation robotLocation, MapInfo[] nearbyTiles) throws GameActionException
-    {
-        MapInfo ruin = null;
-        int minDist = Constants.UNSET_DISTANCE;
-        for (MapInfo tile : nearbyTiles) {
-            if (tile.hasRuin()) {
-                MapLocation tileLoc = tile.getMapLocation();
-                if (!rc.canSenseRobotAtLocation(tileLoc)) {
-                    int dist = robotLocation.distanceSquaredTo(tileLoc);
-                    if (minDist == Constants.UNSET_DISTANCE || minDist > dist) {
-                        ruin = tile;
-                        minDist = dist;
-                    }
-                }
-            }
-        }
-        return ruin;
-    }
-
-    /**
      * Mencari tile pada range yang bisa di-paint untuk pattern tower.
      * Mengembalikan null jika tidak ada tile yang memenuhi syarat.
      */
-    public static MapInfo findPaintableTile(RobotController rc, MapLocation location, int range) throws GameActionException
-    {
+    public static MapInfo findPaintableTile(RobotController rc, MapLocation location, int range) throws GameActionException {
         for (MapInfo tile : rc.senseNearbyMapInfos(location, range)) {
             if (rc.canPaint(tile.getMapLocation()) &&
                     (tile.getPaint() == PaintType.EMPTY ||
@@ -104,8 +77,7 @@ public class Sensing {
      * Mengambil daftar adjacent tile yang passable dan belum memiliki paint.
      * Daftar ini digunakan sebagai kandidat move ke area kosong.
      */
-    public static List<MapInfo> getMovableEmptyTiles(RobotController rc) throws GameActionException
-    {
+    public static List<MapInfo> getMovableEmptyTiles(RobotController rc) throws GameActionException {
         MapInfo[] adjTiles = rc.senseNearbyMapInfos(Constants.ADJACENT_RADIUS_SQUARED);
         List<MapInfo> validAdj = new ArrayList<>();
         for (MapInfo tile : adjTiles) {
@@ -120,8 +92,7 @@ public class Sensing {
      * Mencari robot tower apa pun di dalam range.
      * Mengembalikan null jika tidak ada tower yang terdeteksi.
      */
-    public static RobotInfo towerInRange(RobotController rc, int range) throws GameActionException
-    {
+    public static RobotInfo towerInRange(RobotController rc, int range) throws GameActionException {
         RobotInfo[] botsInRange = rc.senseNearbyRobots(range);
         for (RobotInfo bot : botsInRange) {
             if (bot.getType().isTowerType()) {
@@ -135,8 +106,7 @@ public class Sensing {
      * Mencari robot tower di dalam range berdasarkan tim.
      * Jika ally true, cari tower ally; jika false, cari tower enemy.
      */
-    public static RobotInfo towerInRange(RobotController rc, int range, boolean ally) throws GameActionException
-    {
+    public static RobotInfo towerInRange(RobotController rc, int range, boolean ally) throws GameActionException {
         RobotInfo[] botsInRange;
         if (ally) {
             botsInRange = rc.senseNearbyRobots(range, rc.getTeam());
@@ -154,8 +124,7 @@ public class Sensing {
     /**
      * Mencari tile pertama pada nearbyTiles yang memiliki enemy paint.
      */
-    public static MapInfo findEnemyPaint(RobotController rc, MapInfo[] nearbyTiles) throws GameActionException
-    {
+    public static MapInfo findEnemyPaint(RobotController rc, MapInfo[] nearbyTiles) throws GameActionException {
         for (MapInfo tile : nearbyTiles) {
             if (tile.getPaint().isEnemy()) {
                 return tile;
@@ -168,8 +137,7 @@ public class Sensing {
      * Menghitung jumlah empty tile di sekitar center dalam adjacent radius.
      * Hanya menghitung tile yang passable dan tidak ditempati robot.
      */
-    public static int countEmptyAround(RobotController rc, MapLocation center) throws GameActionException
-    {
+    public static int countEmptyAround(RobotController rc, MapLocation center) throws GameActionException {
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos(center, Constants.ADJACENT_RADIUS_SQUARED);
         int count = 0;
         for (MapInfo tile : nearbyTiles) {
@@ -185,8 +153,7 @@ public class Sensing {
      * Memilih direction dengan score terendah untuk mendekati target.
      * Nilai score dihitung oleh fungsi scoreDirection.
      */
-    public static Direction getGreedyDirectionToward(RobotController rc, MapLocation target) throws GameActionException
-    {
+    public static Direction getGreedyDirectionToward(RobotController rc, MapLocation target) throws GameActionException {
         if (target == null) {
             return null;
         }
@@ -214,8 +181,7 @@ public class Sensing {
      * Melakukan move ke direction terbaik menuju target berdasarkan greedy score.
      * Mengembalikan true jika move berhasil, false jika tidak bisa move.
      */
-    public static boolean moveGreedyToward(RobotController rc, MapLocation target) throws GameActionException
-    {
+    public static boolean moveGreedyToward(RobotController rc, MapLocation target) throws GameActionException {
         if (!rc.isMovementReady()) {
             return false;
         }
@@ -232,8 +198,7 @@ public class Sensing {
      * Menghitung score untuk move ke direction tertentu.
      * Formula score: distance ke target * 10 + penalty/bonus paint.
      */
-    private static int scoreDirection(RobotController rc, MapLocation current, MapLocation target, Direction direction) throws GameActionException
-    {
+    private static int scoreDirection(RobotController rc, MapLocation current, MapLocation target, Direction direction) throws GameActionException {
         if (!rc.canMove(direction)) {
             return Constants.GREEDY_BLOCKED_PENALTY;
         }
@@ -255,5 +220,24 @@ public class Sensing {
         }
 
         return score;
+    }
+
+    /**
+     * Mencari unclaimed ruin terdekat
+     */
+    public static MapLocation findUnclaimedRuin(RobotController rc, int range) throws GameActionException {
+        MapLocation[] ruins = rc.senseNearbyRuins(range);
+        MapLocation closest = null;
+        int minDist = Constants.UNSET_DISTANCE;
+        for (MapLocation ruin : ruins) {
+            if (!rc.canSenseRobotAtLocation(ruin)) {
+                int dist = rc.getLocation().distanceSquaredTo(ruin);
+                if (minDist == Constants.UNSET_DISTANCE || dist < minDist) {
+                    closest = ruin;
+                    minDist = dist;
+                }
+            }
+        }
+        return closest;
     }
 }
