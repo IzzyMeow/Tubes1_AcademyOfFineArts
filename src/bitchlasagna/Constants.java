@@ -31,4 +31,22 @@ public class Constants {
     public static final int RETREAT_HEALTH_PERCENTAGE = 25;
     public static final int RETREAT_PAINT_PERCENTAGE = 20;
 
+    // Mopper
+    public static final int MOPPER_SENSE_RADIUS = 2;
+    public static final int MOPPER_TRANSFER_AMOUNT = 20;
+    public static final int MOPPER_MIN_PAINT_TO_TRANSFER = 30;
+    public static final int MOPPER_LOW_ALLY_PAINT = 50;
+    public static final int MOPPER_ALLY_PAINT_SCORE = 10;
+    public static final int MOPPER_NEAR_LOW_ALLY_SCORE = 50;
+    public static final int MOPPER_BORDER_TILE_SCORE = 5;
+
+    // Splasher
+    public static final int SPLASHER_ATTACK_COST = 50;
+    public static final int SPLASHER_ATTACK_RADIUS = 4;
+    public static final int SPLASHER_INNER_RADIUS = 2;
+    public static final int SPLASHER_TOWER_SCORE = 1000;
+    public static final int SPLASHER_ENEMY_ROBOT_SCORE = 20;
+    public static final int SPLASHER_ENEMY_PAINT_SCORE = 5;
+    public static final int SPLASHER_EMPTY_PAINT_SCORE = 2;
+
 }

@@ -3,85 +3,68 @@ package bitchlasagna;
 import battlecode.common.*;
 
 public class Splasher extends Robot {
-    
-    public static void run(RobotController rc) throws GameActionException {
-        while (true) {
-            try {
-                if (rc.isActionReady() && rc.getPaint() >= 50) {
-                    splashTower(rc);
-                }
 
-                if (rc.isMovementReady()) {
-                    moveToEnemy(rc);
-                }
-            } catch (GameActionException e) {
-                System.out.println("Splasher is error!");
-                e.printStackTrace();
-            }
-
-            Clock.yield();
-        }
-    }
-
-    // Fungsi Throw Splash ke Tower (Tower adalah Koentji)
-    private static void splashTower(RobotController rc) throws GameActionException {
-        MapInfo[] centerCandidates = rc.senseNearbyMapInfos(4);
+    /**
+     * find best splash target and attack, prioritizing towers > robots > paint
+     */
+    public static void splashAttack(RobotController rc) throws GameActionException {
+        MapInfo[] centerCandidates = rc.senseNearbyMapInfos(Constants.SPLASHER_ATTACK_RADIUS);
         MapLocation bestTarget = null;
-        int maxScore = -1;
-        RobotInfo[] allNearbyRobots = rc.senseNearbyRobots(20);
-        MapInfo[] allMapInfos = rc.senseNearbyMapInfos(20);
+        int maxScore = 0;
+        RobotInfo[] allNearbyRobots = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS);
+        MapInfo[] allMapInfos = rc.senseNearbyMapInfos(Constants.GLOBAL_SENSE_RADIUS);
 
         for (MapInfo centerInfo : centerCandidates) {
             MapLocation center = centerInfo.getMapLocation();
 
-            if (rc.canAttack(center)) {
-                int currScore = 0;
+            if (!rc.canAttack(center)) continue;
 
-                for (RobotInfo unit : allNearbyRobots) {
-                    if (center.distanceSquaredTo(unit.getLocation()) <= 4) {
-                        if (unit.getTeam() != rc.getTeam()) {
-                            if (unit.getType().isTowerType()) {
-                                currScore += 1000;
-                            } else if (center.distanceSquaredTo(unit.getLocation()) <= 2) {
-                                currScore += 20;
-                            }
-                        }
+            int currScore = 0;
+
+            for (RobotInfo unit : allNearbyRobots) {
+                if (unit.getTeam() == rc.getTeam()) continue;
+                int dist = center.distanceSquaredTo(unit.getLocation());
+
+                if (dist <= Constants.SPLASHER_ATTACK_RADIUS) {
+                    if (unit.getType().isTowerType()) {
+                        currScore += Constants.SPLASHER_TOWER_SCORE;
+                    } else if (dist <= Constants.SPLASHER_INNER_RADIUS) {
+                        currScore += Constants.SPLASHER_ENEMY_ROBOT_SCORE;
                     }
                 }
+            }
 
-                for (MapInfo tileInfo : allMapInfos) {
-                    MapLocation tileLoc = tileInfo.getMapLocation();
+            for (MapInfo tileInfo : allMapInfos) {
+                int dist = center.distanceSquaredTo(tileInfo.getMapLocation());
 
-                    if (center.distanceSquaredTo(tileLoc) <= 4) {
-                        if (tileInfo.getPaint().isEnemy()) {
-                            if (center.distanceSquaredTo(tileLoc) <= 2) {
-                                currScore += 5;
-                            }
-                        } else if (tileInfo.getPaint() == PaintType.EMPTY) {
-                            currScore += 2;
-                        }
+                if (dist <= Constants.SPLASHER_ATTACK_RADIUS) {
+                    if (tileInfo.getPaint().isEnemy() && dist <= Constants.SPLASHER_INNER_RADIUS) {
+                        currScore += Constants.SPLASHER_ENEMY_PAINT_SCORE;
+                    } else if (tileInfo.getPaint() == PaintType.EMPTY) {
+                        currScore += Constants.SPLASHER_EMPTY_PAINT_SCORE;
                     }
                 }
+            }
 
-                if (currScore > maxScore) {
-                    maxScore = currScore;
-                    bestTarget = center;
-                }
+            if (currScore > maxScore) {
+                maxScore = currScore;
+                bestTarget = center;
             }
         }
 
-        if (bestTarget != null && maxScore > 0) {
+        if (bestTarget != null) {
             rc.attack(bestTarget);
         }
     }
 
-    private static void moveToEnemy(RobotController rc) throws GameActionException {
-        MapLocation myLoc = rc.getLocation();
-        Direction bestDir = null;
-        int minDist = 99999;
-        RobotInfo[] visibleEnemies = rc.senseNearbyRobots(20, rc.getTeam().opponent());
+    /**
+     * move toward nearest enemy, prioritizing towers
+     */
+    public static void moveToEnemy(RobotController rc) throws GameActionException {
+        RobotInfo[] visibleEnemies = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS, rc.getTeam().opponent());
         MapLocation targetLoc = null;
 
+        // prioritize enemy towers
         for (RobotInfo enemy : visibleEnemies) {
             if (enemy.getType().isTowerType()) {
                 targetLoc = enemy.getLocation();
@@ -89,32 +72,23 @@ public class Splasher extends Robot {
             }
         }
 
+        // fallback to any enemy
         if (targetLoc == null && visibleEnemies.length > 0) {
             targetLoc = visibleEnemies[0].getLocation();
         }
 
-        for (Direction dir : Constants.DIRECTIONS) {
-            if (dir == Direction.CENTER || !rc.canMove(dir)) continue;
-
-            MapLocation nextLoc = myLoc.add(dir);
-
-            if (targetLoc != null) {
-                int dist = nextLoc.distanceSquaredTo(targetLoc);
-                if (dist < minDist) {
-                    minDist = dist;
-                    bestDir = dir;
-                }
-            } else {
-                MapInfo nextInfo = rc.senseMapInfo(nextLoc);
-                if (nextInfo.getPaint() == PaintType.EMPTY || nextInfo.getPaint().isEnemy()) {
-                    bestDir = dir;
-                    break;
-                }
+        if (targetLoc != null) {
+            // pathfinding towards target
+            Direction dir = Pathfinding.pathfind(rc, targetLoc);
+            if (dir != null && rc.canMove(dir)) {
+                rc.move(dir);
             }
-        }
-
-        if (bestDir != null) {
-            rc.move(bestDir);
+        } else {
+            // no enemy visible, explore toward unpainted areas
+            Direction dir = Pathfinding.exploreUnpainted(rc);
+            if (dir != null && rc.canMove(dir)) {
+                rc.move(dir);
+            }
         }
     }
 }

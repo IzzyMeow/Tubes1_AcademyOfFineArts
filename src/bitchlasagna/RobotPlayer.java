@@ -57,10 +57,24 @@ public class RobotPlayer {
 
     public static void runMopper(RobotController rc) throws GameActionException {
         System.out.println("runMopper");  // delete this
+        if (rc.isActionReady()) {
+            Mopper.mopperAction(rc);
+        }
+        
+        if (rc.isMovementReady()) {
+            Mopper.moveToPerimeter(rc);
+        }
     }
 
     public static void runSplasher(RobotController rc) throws GameActionException {
         System.out.println("runSplasher");  // delete this
+        if (rc.isActionReady() && rc.getPaint() >= Constants.SPLASHER_ATTACK_COST) {
+            Splasher.splashAttack(rc);
+        }
+
+        if (rc.isMovementReady()) {
+            Splasher.moveToEnemy(rc);
+        }
     }
 
     public static void runTower(RobotController rc) throws GameActionException {
