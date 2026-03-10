@@ -5,6 +5,9 @@ import battlecode.common.*;
 import java.util.List;
 
 public class Pathfinding {
+	// wall exploration
+	static Direction lastExploreDir = null;
+
 	/**
 	 * Menentukan arah gerak terbaik menuju target dengan mempertimbangkan jarak dan biaya paint.
 	 */
@@ -140,11 +143,9 @@ public class Pathfinding {
 		}
 
 		if (totalWeight == 0) {
-			for (Direction direction : Constants.DIRECTIONS) {
-				MapLocation candidate = rc.getLocation().add(direction);
-				if (rc.canSenseLocation(candidate) && rc.senseMapInfo(candidate).isPassable()) {
-					return candidate;
-				}
+			Direction dir = wallFollow(rc);
+			if (dir != null) {
+				return rc.getLocation().add(dir);
 			}
 			return rc.getLocation();
 		}
@@ -193,6 +194,27 @@ public class Pathfinding {
 		int targetY = current.y < rc.getMapHeight() / 2 ? rc.getMapHeight() - 1 : 0;
 		MapLocation oppositeCorner = new MapLocation(targetX, targetY);
 		return pathfind(rc, oppositeCorner);
+	}
+
+	/**
+	 * Wall-following algo: try last heading, rotate right if blocked, returns a movable direction, or null if stuck.
+	 */
+	public static Direction wallFollow(RobotController rc) throws GameActionException {
+		if (lastExploreDir == null) {
+			// initialize heading toward center of map
+			lastExploreDir = Robot.directionToCenter(rc);
+		}
+
+		// try current heading, then rotate right up to 7 times
+		Direction dir = lastExploreDir;
+		for (int i = 0; i < 8; i++) {
+			if (rc.canMove(dir)) {
+				lastExploreDir = dir;
+				return dir;
+			}
+			dir = dir.rotateRight();
+		}
+		return null;
 	}
 
 	/**

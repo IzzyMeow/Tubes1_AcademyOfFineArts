@@ -25,8 +25,7 @@ public class Robot {
 
     public static void markTower(RobotController rc, UnitType towerType, MapLocation targetLoc) throws GameActionException {
         MapLocation shouldBeMarked = targetLoc.subtract(rc.getLocation().directionTo(targetLoc));
-        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY &&
-                rc.canMarkTowerPattern(towerType, targetLoc)){
+        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerType, targetLoc)) {
             rc.markTowerPattern(towerType, targetLoc);
         }
     }
@@ -43,6 +42,14 @@ public class Robot {
         }
     }
 
-    
+    // get center of map
+    public static MapLocation getMapCenter(RobotController rc) {
+        return new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+    }
+
+    // direction from robot toward center of map
+    public static Direction directionToCenter(RobotController rc) {
+        return rc.getLocation().directionTo(getMapCenter(rc));
+    }
 
 }

@@ -65,9 +65,8 @@ public class Soldier extends Robot {
         }
     }
 
-    /**
-     * paints the tile underfoot and nearby paintable tiles within action radius.
-     */
+    
+    //paints the tile underfoot and nearby paintable tiles within action radius
     public static void paintAroundSelf(RobotController rc) throws GameActionException {
         // paint tile underfoot first
         MapLocation myLoc = rc.getLocation();
@@ -87,9 +86,8 @@ public class Soldier extends Robot {
         }
     }
 
-    /**
-     * go to the nearest allied tower when health or paint is low, return true if moved
-     */
+
+    // go to the nearest allied tower when health or paint is low, return true if moved
     public static boolean retreat(RobotController rc) throws GameActionException {
         boolean lowHealth = Robot.hasLowHealth(rc, Constants.RETREAT_HEALTH_PERCENTAGE);
         boolean lowPaint = Robot.hasLowPaint(rc, Constants.RETREAT_PAINT_PERCENTAGE);
@@ -107,10 +105,8 @@ public class Soldier extends Robot {
         return false;
     }
 
-    /**
-     * go towards unpainted areas, painting tiles along the way
-     * behavior for SoldierState.ADVANCE, returns true if moved
-     */
+
+    //go towards unpainted areas, painting tiles along the way
     public static boolean explore(RobotController rc) throws GameActionException {
         // paint around before moving
         paintAroundSelf(rc);

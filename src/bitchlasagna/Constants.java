@@ -49,4 +49,17 @@ public class Constants {
     public static final int SPLASHER_ENEMY_PAINT_SCORE = 5;
     public static final int SPLASHER_EMPTY_PAINT_SCORE = 2;
 
+    // Tower
+    public static final int SOLDIER_RATIO = 3;
+    public static final int MOPPER_RATIO = 1;
+    public static final int SPLASHER_RATIO = 1;
+    public static final int TOTAL_SPAWN_RATIO = SOLDIER_RATIO + MOPPER_RATIO + SPLASHER_RATIO;
+    public static final int TOWER_AOE_ENEMY_THRESHOLD = 3;
+    public static final int TOWER_UPGRADE_ROUND = 200;
+    public static final int TOWER_BUILD_CHIP_RESERVE = 1200;
+
+    // Soldier
+    public static final int SOLDIER_RUIN_SEARCH_RADIUS = -1;
+    public static final int SOLDIER_ENEMY_DETECT_RADIUS = -1;
+
 }
