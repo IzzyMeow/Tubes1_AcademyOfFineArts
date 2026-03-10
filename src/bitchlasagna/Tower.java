@@ -46,4 +46,35 @@ public class Tower {
         }
     }
 
+    // upgrade self to next level
+    public static void upgradeSelf(RobotController rc) throws GameActionException {
+        if (rc.canUpgradeTower(rc.getLocation())) {
+            rc.upgradeTower(rc.getLocation());
+        }
+    }
+
+    // rotation spawn unit
+    public static boolean spawnUnit(RobotController rc, int spawnCount) throws GameActionException {
+        int cycle = spawnCount % Constants.TOTAL_SPAWN_RATIO;
+        UnitType type;
+        if (cycle < Constants.SOLDIER_RATIO) {
+            type = UnitType.SOLDIER;
+        } else if (cycle < Constants.SOLDIER_RATIO + Constants.MOPPER_RATIO) {
+            type = UnitType.MOPPER;
+        } else {
+            type = UnitType.SPLASHER;
+        }
+
+        for (Direction dir : Constants.DIRECTIONS) {
+            MapLocation spawnLoc = rc.getLocation().add(dir);
+            if (rc.canBuildRobot(type, spawnLoc)) {
+                if (type == UnitType.SOLDIER) createSoldier(rc, dir);
+                else if (type == UnitType.MOPPER) createMopper(rc, dir);
+                else createSplasher(rc, dir);
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

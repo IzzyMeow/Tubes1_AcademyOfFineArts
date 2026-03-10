@@ -8,8 +8,7 @@ public class Pathfinding {
 	/**
 	 * Menentukan arah gerak terbaik menuju target dengan mempertimbangkan jarak dan biaya paint.
 	 */
-	public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException
-	{
+	public static Direction pathfind(RobotController rc, MapLocation target) throws GameActionException {
 		if (target == null) {
 			return null;
 		}
@@ -52,8 +51,7 @@ public class Pathfinding {
 	/**
 	 * Menentukan arah gerak dasar: maju ke target, atau alternatif kiri/kanan, lalu arah acak yang valid.
 	 */
-	public static Direction originalPathfind(RobotController rc, MapLocation target) throws GameActionException
-	{
+	public static Direction originalPathfind(RobotController rc, MapLocation target) throws GameActionException {
 		if (target == null) {
 			return null;
 		}
@@ -82,8 +80,7 @@ public class Pathfinding {
 	/**
 	 * Menentukan arah menuju target dengan memprioritaskan tile dengan paint ally sebelum tile lain.
 	 */
-	public static Direction paintedPathfind(RobotController rc, MapLocation target) throws GameActionException
-	{
+	public static Direction paintedPathfind(RobotController rc, MapLocation target) throws GameActionException {
 		if (target == null) {
 			return null;
 		}
@@ -118,8 +115,7 @@ public class Pathfinding {
 	/**
 	 * Mengembalikan arah untuk kembali ke tower sekutu terdekat yang terdeteksi.
 	 */
-	public static Direction returnToTower(RobotController rc) throws GameActionException
-	{
+	public static Direction returnToTower(RobotController rc) throws GameActionException {
 		RobotInfo alliedTower = Sensing.towerInRange(rc, Constants.GLOBAL_SENSE_RADIUS, true);
 		if (alliedTower == null) {
 			return null;
@@ -130,8 +126,7 @@ public class Pathfinding {
 	/**
 	 * Memecahkan tie antar kandidat tile kosong dengan bobot berdasarkan banyaknya ruang kosong di sekitarnya.
 	 */
-	public static MapLocation tiebreakUnpainted(RobotController rc, List<MapInfo> validAdjacent) throws GameActionException
-	{
+	public static MapLocation tiebreakUnpainted(RobotController rc, List<MapInfo> validAdjacent) throws GameActionException {
 		int totalWeight = 0;
 		int tileCount = validAdjacent.size();
 		int[] weightedAdj = new int[tileCount];
@@ -167,8 +162,7 @@ public class Pathfinding {
 	/**
 	 * Memilih arah eksplorasi ke area kosong/tanpa paint, dengan fallback ke tile yang masih bisa dilalui.
 	 */
-	public static Direction exploreUnpainted(RobotController rc) throws GameActionException
-	{
+	public static Direction exploreUnpainted(RobotController rc) throws GameActionException {
 		List<MapInfo> validAdj = Sensing.getMovableEmptyTiles(rc);
 		if (validAdj.isEmpty()) {
 			MapLocation curLoc = rc.getLocation();
@@ -193,8 +187,7 @@ public class Pathfinding {
 	/**
 	 * Memilih arah untuk keluar dari kebuntuan dengan bergerak menuju sudut peta yang berlawanan.
 	 */
-	public static Direction getUnstuck(RobotController rc) throws GameActionException
-	{
+	public static Direction getUnstuck(RobotController rc) throws GameActionException {
 		MapLocation current = rc.getLocation();
 		int targetX = current.x < rc.getMapWidth() / 2 ? rc.getMapWidth() - 1 : 0;
 		int targetY = current.y < rc.getMapHeight() / 2 ? rc.getMapHeight() - 1 : 0;
@@ -205,8 +198,7 @@ public class Pathfinding {
 	/**
 	 * Mengecek apakah robot bisa bergerak ke arah tertentu dan tile tujuan memiliki paint ally.
 	 */
-	private static boolean canMoveOnAlly(RobotController rc, Direction direction) throws GameActionException
-	{
+	private static boolean canMoveOnAlly(RobotController rc, Direction direction) throws GameActionException {
 		if (!rc.canMove(direction)) {
 			return false;
 		}
@@ -217,8 +209,7 @@ public class Pathfinding {
 	/**
 	 * Mengecek apakah robot masih memiliki paint yang cukup setelah melakukan pergerakan.
 	 */
-	private static boolean canAffordMove(RobotController rc, PaintType paintType)
-	{
+	private static boolean canAffordMove(RobotController rc, PaintType paintType) {
 		int remainPaint = rc.getPaint() - paintLossFor(paintType);
 		return remainPaint > Constants.MIN_REMAINING_PAINT_AFTER_MOVE;
 	}
@@ -226,8 +217,7 @@ public class Pathfinding {
 	/**
 	 * Menghitung kehilangan paint akibat melangkah pada paint type tertentu.
 	 */
-	private static int paintLossFor(PaintType paintType)
-	{
+	private static int paintLossFor(PaintType paintType) {
 		if (paintType.isEnemy()) {
 			return Constants.ENEMY_PAINT_MOVE_LOSS;
 		}
