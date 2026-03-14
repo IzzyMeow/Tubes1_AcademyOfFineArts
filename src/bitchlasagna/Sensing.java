@@ -240,4 +240,58 @@ public class Sensing {
         }
         return closest;
     }
+
+    /**
+     * find ally (non-mopper) with lowest paint in range, null if none
+     */
+    public static RobotInfo findLowestPaintAlly(RobotController rc, int range) throws GameActionException {
+        RobotInfo[] allies = rc.senseNearbyRobots(range, rc.getTeam());
+        RobotInfo best = null;
+        int minPaint = Integer.MAX_VALUE;
+        for (RobotInfo ally : allies) {
+            if (ally.getType() != UnitType.MOPPER && ally.getPaintAmount() < minPaint) {
+                minPaint = ally.getPaintAmount();
+                best = ally;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * find enemy robot with highest paint in range, null if none
+     */
+    public static RobotInfo findHighestPaintEnemy(RobotController rc, int range) throws GameActionException {
+        RobotInfo[] enemies = rc.senseNearbyRobots(range, rc.getTeam().opponent());
+        
+        RobotInfo highest = null;
+        int maxPaint = -1;
+        for (RobotInfo enemy : enemies) {
+            if (enemy.getPaintAmount() > maxPaint) {
+                maxPaint = enemy.getPaintAmount();
+                highest = enemy;
+            }
+        }
+        return highest;
+    }
+
+    /**
+     * find nearest enemy, prioritizing towers. null if none visible
+     */
+    public static MapLocation findEnemyTarget(RobotController rc) throws GameActionException {
+        RobotInfo[] enemies = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS, rc.getTeam().opponent());
+
+        // first go to tower
+        for (RobotInfo enemy : enemies) {
+            if (enemy.getType().isTowerType()) {
+                return enemy.getLocation();
+            }
+        }
+
+        // if none go to any enemy
+        if (enemies.length > 0) {
+            return enemies[0].getLocation();
+        }
+
+        return null;
+    }
 }

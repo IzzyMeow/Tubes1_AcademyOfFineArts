@@ -5,41 +5,70 @@ import battlecode.common.*;
 public class Mopper extends Robot {
 
     /**
-     * transfer paint to low allies, mop enemy robots
+     * transfer paint to the lowest-paint ally nearby, return true if transferred
+     */
+    public static boolean transferPaintToAlly(RobotController rc) throws GameActionException {
+        if (rc.getPaint() <= Constants.MOPPER_MIN_PAINT_TO_TRANSFER) return false;
+
+        RobotInfo ally = Sensing.findLowestPaintAlly(rc, Constants.MOPPER_SENSE_RADIUS);
+        if (ally != null && rc.canTransferPaint(ally.getLocation(), Constants.MOPPER_TRANSFER_AMOUNT)) {
+            rc.transferPaint(ally.getLocation(), Constants.MOPPER_TRANSFER_AMOUNT);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * mop the enemy robot with highest paint nearby, return true if mopped
+     */
+    public static boolean mopEnemy(RobotController rc) throws GameActionException {
+        RobotInfo enemy = Sensing.findHighestPaintEnemy(rc, Constants.MOPPER_SENSE_RADIUS);
+        if (enemy != null && rc.canAttack(enemy.getLocation())) {
+            rc.attack(enemy.getLocation());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * mopper action: transfer paint to allies first, then mop enemies
      */
     public static void mopperAction(RobotController rc) throws GameActionException {
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(Constants.MOPPER_SENSE_RADIUS);
-        RobotInfo healTarget = null;
-        RobotInfo enemyTarget = null;
-        int minPaintAlly = Integer.MAX_VALUE;
-        int maxPaintEnemy = -1;
+        if (transferPaintToAlly(rc)) return;
+        mopEnemy(rc);
+    }
 
-        for (RobotInfo robot : nearbyRobots) {
-            if (robot.getTeam() == rc.getTeam()) {
-                if (robot.getType() != UnitType.MOPPER && robot.getPaintAmount() < minPaintAlly) {
-                    minPaintAlly = robot.getPaintAmount();
-                    healTarget = robot;
-                }
-            } else {
-                if (robot.getPaintAmount() > maxPaintEnemy) {
-                    maxPaintEnemy = robot.getPaintAmount();
-                    enemyTarget = robot;
+    /**
+     * score a direction for perimeter movement
+     */
+    private static int scorePerimeterDirection(RobotController rc, MapLocation nextLoc, MapInfo nextLocInfo,
+            RobotInfo[] allies, MapInfo[] mapInfos) {
+        if (nextLocInfo.getPaint().isEnemy()) return Integer.MIN_VALUE;
+
+        int score = 0;
+
+        if (nextLocInfo.getPaint().isAlly()) {
+            score += Constants.MOPPER_ALLY_PAINT_SCORE;
+        }
+
+        for (RobotInfo ally : allies) {
+            if (nextLoc.distanceSquaredTo(ally.getLocation()) <= Constants.MOPPER_SENSE_RADIUS) {
+                if (ally.getType() != UnitType.MOPPER
+                        && ally.getPaintAmount() < Constants.MOPPER_LOW_ALLY_PAINT) {
+                    score += Constants.MOPPER_NEAR_LOW_ALLY_SCORE;
                 }
             }
         }
 
-        // transfer paint to lowest-paint ally
-        if (healTarget != null
-                && rc.getPaint() > Constants.MOPPER_MIN_PAINT_TO_TRANSFER
-                && rc.canTransferPaint(healTarget.getLocation(), Constants.MOPPER_TRANSFER_AMOUNT)) {
-            rc.transferPaint(healTarget.getLocation(), Constants.MOPPER_TRANSFER_AMOUNT);
-            return;
+        for (MapInfo adjInfo : mapInfos) {
+            if (nextLoc.distanceSquaredTo(adjInfo.getMapLocation()) <= Constants.MOPPER_SENSE_RADIUS) {
+                if (adjInfo.getPaint() == PaintType.EMPTY || adjInfo.getPaint().isEnemy()) {
+                    score += Constants.MOPPER_BORDER_TILE_SCORE;
+                }
+            }
         }
 
-        // mop enemy robot
-        if (enemyTarget != null && rc.canAttack(enemyTarget.getLocation())) {
-            rc.attack(enemyTarget.getLocation());
-        }
+        return score;
     }
 
     /**
@@ -58,33 +87,9 @@ public class Mopper extends Robot {
             MapLocation nextLoc = myLoc.add(dir);
             MapInfo nextLocInfo = rc.senseMapInfo(nextLoc);
 
-            if (nextLocInfo.getPaint().isEnemy()) continue;
-
-            int currScore = 0;
-
-            if (nextLocInfo.getPaint().isAlly()) {
-                currScore += Constants.MOPPER_ALLY_PAINT_SCORE;
-            }
-
-            for (RobotInfo ally : allAllies) {
-                if (nextLoc.distanceSquaredTo(ally.getLocation()) <= Constants.MOPPER_SENSE_RADIUS) {
-                    if (ally.getType() != UnitType.MOPPER
-                            && ally.getPaintAmount() < Constants.MOPPER_LOW_ALLY_PAINT) {
-                        currScore += Constants.MOPPER_NEAR_LOW_ALLY_SCORE;
-                    }
-                }
-            }
-
-            for (MapInfo adjInfo : allMapInfos) {
-                if (nextLoc.distanceSquaredTo(adjInfo.getMapLocation()) <= Constants.MOPPER_SENSE_RADIUS) {
-                    if (adjInfo.getPaint() == PaintType.EMPTY || adjInfo.getPaint().isEnemy()) {
-                        currScore += Constants.MOPPER_BORDER_TILE_SCORE;
-                    }
-                }
-            }
-
-            if (currScore > maxScore) {
-                maxScore = currScore;
+            int score = scorePerimeterDirection(rc, nextLoc, nextLocInfo, allAllies, allMapInfos);
+            if (score > maxScore) {
+                maxScore = score;
                 bestDir = dir;
             }
         }
