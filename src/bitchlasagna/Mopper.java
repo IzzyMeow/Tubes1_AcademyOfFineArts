@@ -19,7 +19,7 @@ public class Mopper extends Robot {
     }
 
     /**
-     * mop the enemy robot with highest paint nearby, return true if mopped
+     * mop the enemy robot with highest paint nearby then return true
      */
     public static boolean mopEnemy(RobotController rc) throws GameActionException {
         RobotInfo enemy = Sensing.findHighestPaintEnemy(rc, Constants.MOPPER_SENSE_RADIUS);
@@ -41,8 +41,7 @@ public class Mopper extends Robot {
     /**
      * score a direction for perimeter movement
      */
-    private static int scorePerimeterDirection(RobotController rc, MapLocation nextLoc, MapInfo nextLocInfo,
-            RobotInfo[] allies, MapInfo[] mapInfos) {
+    private static int scorePerimeterDirection(RobotController rc, MapLocation nextLoc, MapInfo nextLocInfo, RobotInfo[] allies, MapInfo[] mapInfo) {
         if (nextLocInfo.getPaint().isEnemy()) return Integer.MIN_VALUE;
 
         int score = 0;
@@ -60,7 +59,7 @@ public class Mopper extends Robot {
             }
         }
 
-        for (MapInfo adjInfo : mapInfos) {
+        for (MapInfo adjInfo : mapInfo) {
             if (nextLoc.distanceSquaredTo(adjInfo.getMapLocation()) <= Constants.MOPPER_SENSE_RADIUS) {
                 if (adjInfo.getPaint() == PaintType.EMPTY || adjInfo.getPaint().isEnemy()) {
                     score += Constants.MOPPER_BORDER_TILE_SCORE;
@@ -75,11 +74,29 @@ public class Mopper extends Robot {
      * move toward the border between ally and enemy/empty territory
      */
     public static void moveToPerimeter(RobotController rc) throws GameActionException {
+        // 1. if we have enough paint to share, pathfind towards the lowest paint ally in radius
+        if (rc.getPaint() >= Constants.MOPPER_MIN_PAINT_TO_TRANSFER) {
+            RobotInfo lowestAlly = Sensing.findLowestPaintAlly(rc, Constants.GLOBAL_SENSE_RADIUS);
+
+            if (lowestAlly != null && lowestAlly.getPaintAmount() < Constants.MOPPER_LOW_ALLY_PAINT) {
+                if (rc.getLocation().distanceSquaredTo(lowestAlly.getLocation()) > Constants.MOPPER_SENSE_RADIUS) {
+                    Direction dir = Pathfinding.pathfind(rc, lowestAlly.getLocation());
+                    
+                    if (dir != null && rc.canMove(dir)) {
+                        rc.move(dir);
+                        return;
+                    }
+                }
+            }
+        }
+
         MapLocation myLoc = rc.getLocation();
         Direction bestDir = null;
         int maxScore = Integer.MIN_VALUE;
-        RobotInfo[] allAllies = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS, rc.getTeam());
-        MapInfo[] allMapInfos = rc.senseNearbyMapInfos(Constants.GLOBAL_SENSE_RADIUS);
+
+        // 2. score each direction and move
+        RobotInfo[] allAlly = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS, rc.getTeam());
+        MapInfo[] allMapInfo = rc.senseNearbyMapInfos(Constants.GLOBAL_SENSE_RADIUS);
 
         for (Direction dir : Constants.DIRECTIONS) {
             if (!rc.canMove(dir)) continue;
@@ -87,7 +104,8 @@ public class Mopper extends Robot {
             MapLocation nextLoc = myLoc.add(dir);
             MapInfo nextLocInfo = rc.senseMapInfo(nextLoc);
 
-            int score = scorePerimeterDirection(rc, nextLoc, nextLocInfo, allAllies, allMapInfos);
+            int score = scorePerimeterDirection(rc, nextLoc, nextLocInfo, allAlly, allMapInfo);
+
             if (score > maxScore) {
                 maxScore = score;
                 bestDir = dir;

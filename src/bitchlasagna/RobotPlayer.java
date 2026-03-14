@@ -59,10 +59,20 @@ public class RobotPlayer {
 
         // 2. check for unclaimed ruin, build a tower
         MapLocation ruinLoc = Sensing.findUnclaimedRuin(rc, Constants.SOLDIER_RUIN_SEARCH_RADIUS);
+
         if (ruinLoc != null) {
             // mark tower if robot can sense
             if (rc.canSenseLocation(ruinLoc)) {
-                Robot.markTower(rc, UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
+                UnitType towerType;
+                
+                if (Math.abs(ruinLoc.x * 31 + ruinLoc.y) % Constants.TOTAL_TOWER_RATIO < Constants.PAINT_TOWER_RATIO) {  // 'random function' for each coordinate
+                    towerType = UnitType.LEVEL_ONE_PAINT_TOWER;
+                }
+                else {
+                    towerType = UnitType.LEVEL_ONE_MONEY_TOWER;
+                }
+
+                Robot.markTower(rc, towerType, ruinLoc);
 
                 // find nearest unpainted pattern tile to move toward
                 MapLocation moveTarget = ruinLoc;
