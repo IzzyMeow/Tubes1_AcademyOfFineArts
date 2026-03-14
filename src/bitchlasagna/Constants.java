@@ -57,7 +57,7 @@ public class Constants {
     public static final int TOWER_AOE_ENEMY_THRESHOLD = 3;
     public static final int TOWER_UPGRADE_ROUND = 200;
     public static final int TOWER_BUILD_CHIP_RESERVE = 1200;
-    public static final int PAINT_TOWER_RATIO = 1;
+    public static final int PAINT_TOWER_RATIO = 2;
     public static final int MONEY_TOWER_RATIO = 1;
     public static final int TOTAL_TOWER_RATIO = PAINT_TOWER_RATIO + MONEY_TOWER_RATIO;
 
