@@ -26,13 +26,30 @@ Use [STIMA-battle client, mirrored from Battlecode 2025 Java Scaffold](https://g
 *   **Retreat:** Kabur ke *Tower* terdekat jika HP/Cat di bawah 25%.
 *   **Explore:** Mencari titik kosong. Saat menemukan *Ruin*, ia menggunakan fungsi *hash* koordinat untuk menentukan *tower type* untuk dibangun.
 
-
 ### 3. Mopper
 *   **Patroli:** Bergerak ke petak dengan scoring: dekat cat teman (+10), dekat batas cat/kosong (+5), dekat teman sekarat (+50).
 *   **Support:** Mengisi cat teman yang kritis, atau menyerang musuh cat terbanyak.
 
 ### 4. Splasher
 *   **Targeting Ledakan:** Mencari target serangan dalam sense radius: kena tower musuh (+1000 point), kena robot musuh (+20), cat musuh (+5). Menembak titik dengan poin terbanyak.
+
+
+## Algoritma weball
+### 1. Tower
+*   **Targeting:** Menyerang AoE jika terdapat musuh yang bergerombo, single attack jika hanya sedikit
+*   **Spawn:** Melakukan spawn robot, dengan memprioritaskan Soldier dan Splasher
+
+### 2. Soldier
+*   **Attack:** Menyerang musuh jika menemukannya untuk mempertahankan teritori
+*   **Explore:** Mencari tile kosong dan ruins untuk ekspansi map
+
+### 3. Mopper
+*   **Mop:** Menggunakan Mop jika berada di sekitar tile musuh
+*   **Swing:** Menggunakan Swing jika terdapat musuh di sekitarnya
+*   **Support:** Mengisi cat teman terdekat
+
+### 4. Splasher
+*   **Splash:** Mencari target serangan Splash yang memprioritaskan menyerang tower dan tile musuh, menghindari menimpa tile tim sendiri
 
 ---
 \
