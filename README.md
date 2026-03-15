@@ -1,35 +1,8 @@
-# Battlecode 2025 Scaffold - Java
-
-This is the Battlecode 2025 Java scaffold, containing an `examplefuncsplayer`. Read https://play.battlecode.org/bc25java/quick_start !
-
-
-### Project Structure
-
-- `README.md`
-    This file.
-- `build.gradle`
-    The Gradle build file used to build and run players.
-- `src/`
-    Player source code.
-- `test/`
-    Player test code.
-- `client/`
-    Contains the client. The proper executable can be found in this folder (don't move this!)
-- `build/`
-    Contains compiled player code and other artifacts of the build process. Can be safely ignored.
-- `matches/`
-    The output folder for match files.
-- `maps/`
-    The default folder for custom maps.
-- `gradlew`, `gradlew.bat`
-    The Unix (OS X/Linux) and Windows versions, respectively, of the Gradle wrapper. These are nifty scripts that you can execute in a terminal to run the Gradle build tasks of this project. If you aren't planning to do command line development, these can be safely ignored.
-- `gradle/`
-    Contains files used by the Gradle wrapper scripts. Can be safely ignored.
+# Tubes 1 Strategi Algoritma
 
 ### How to get started
 
-You are free to directly edit `examplefuncsplayer`.
-However, we recommend you make a new bot by copying `examplefuncsplayer` to a new package under the `src` folder.
+Use [STIMA-battle client, mirrored from Battlecode 2025 Java Scaffold](https://github.com/Fariz36/STIMA-battle) to run the game. Copy the existing `src/` folder to the STIMA-battle client's `src/` folder.
 
 ### Useful Commands
 
@@ -44,10 +17,28 @@ However, we recommend you make a new bot by copying `examplefuncsplayer` to a ne
 - `./gradlew tasks`
     See what else you can do!
 
+## Algoritma bitchlasagna
+### 1. Tower
+*   **Targeting:** Menyerang musuh terdekat dengan HP terendah, serang AoE jika banyak musuh.
+*   **Spawn:** Melakukan spawn robot, dengan catatan sisa resources cukup untuk membuat tower baru
 
-### Configuration 
+### 2. Soldier
+*   **Retreat:** Kabur ke *Tower* terdekat jika HP/Cat di bawah 25%.
+*   **Explore:** Mencari titik kosong. Saat menemukan *Ruin*, ia menggunakan fungsi *hash* koordinat untuk menentukan *tower type* untuk dibangun.
 
-Look at `gradle.properties` for project-wide configuration.
 
-If you are having any problems with the default client, please report to teh devs and
-feel free to set the `compatibilityClient` configuration to `true` to download a different version of the client.
+### 3. Mopper
+*   **Patroli:** Bergerak ke petak dengan scoring: dekat cat teman (+10), dekat batas cat/kosong (+5), dekat teman sekarat (+50).
+*   **Support:** Mengisi cat teman yang kritis, atau menyerang musuh cat terbanyak.
+
+### 4. Splasher
+*   **Targeting Ledakan:** Mencari target serangan dalam sense radius: kena tower musuh (+1000 point), kena robot musuh (+20), cat musuh (+5). Menembak titik dengan poin terbanyak.
+
+---
+\
+**Kelompok AcademyOfFineArts**
+| Nama | NIM |
+| :--- | :--- |
+| Bernhard Aprillio Pramana | 13524074 |
+| Moreno Syawali Ganda Sugita | 13524096 |
+| Nathaniel Christian | 13524122 |
