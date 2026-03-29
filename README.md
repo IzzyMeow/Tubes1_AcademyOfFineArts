@@ -17,7 +17,7 @@ Use [STIMA-battle client, mirrored from Battlecode 2025 Java Scaffold](https://g
 - `./gradlew tasks`
     See what else you can do!
 
-## Algoritma bitchlasagna
+## Algoritma main_bot
 ### 1. Tower
 *   **Targeting:** Menyerang musuh terdekat dengan HP terendah, serang AoE jika banyak musuh.
 *   **Spawn:** Melakukan spawn robot, dengan catatan sisa resources cukup untuk membuat tower baru
@@ -33,7 +33,7 @@ Use [STIMA-battle client, mirrored from Battlecode 2025 Java Scaffold](https://g
 ### 4. Splasher
 *   **Targeting Ledakan:** Mencari target serangan dalam sense radius: kena tower musuh (+1000 point), kena robot musuh (+20), cat musuh (+5). Menembak titik dengan poin terbanyak.
 
-## Algoritma holo_oven
+## Algoritma alternative_bots_2
 ### 1. Tower
 *   **Targeting:** Menyerang musuh HP terendah, lalu menggunakan AoE jika musuh bergerombol.
 *   **Spawn:** Ronde awal fokus spawn Soldier; setelah itu spawn rotasi 3:1:1 (Soldier:Mopper:Splasher) sambil menyisakan chip cadangan.
@@ -50,7 +50,7 @@ Use [STIMA-battle client, mirrored from Battlecode 2025 Java Scaffold](https://g
 *   **Splash Targeting:** Menilai pusat ledakan terbaik dengan prioritas tower musuh, musuh, kontrol paint area.
 *   **Movement:** Mengejar target musuh memakai `pathfindAttack`; jika tidak ada musuh terlihat, maju ke tengah map untuk mempercepat kontak.
 
-## Algoritma weball
+## Algoritma alternative_bots_1
 ### 1. Tower
 *   **Targeting:** Menyerang AoE jika terdapat musuh yang bergerombo, single attack jika hanya sedikit
 *   **Spawn:** Melakukan spawn robot, dengan memprioritaskan Soldier dan Splasher
