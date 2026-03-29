@@ -1,4 +1,4 @@
-package alternative_bots_2;
+package alternative_bots_1;
 
 import battlecode.common.*;
 
@@ -9,27 +9,26 @@ public class Soldier extends Robot {
         ATTACK
     }
 
-    // paint if possible, given MapInfo and/or MapLocation
-    public static void paint(RobotController rc, MapInfo paintTile, MapLocation paintLocation) throws GameActionException {
-        if (paintTile.getPaint() == PaintType.EMPTY && rc.canAttack(paintLocation)) {
-            rc.attack(paintLocation);
-        } 
-        else if ((!paintTile.getPaint().isEnemy()) && paintTile.getMark() != paintTile.getPaint() && paintTile.getMark() != PaintType.EMPTY && rc.canAttack(paintLocation)) {
-            boolean useSecondaryColor = paintTile.getMark() == PaintType.ALLY_SECONDARY;
-            rc.attack(paintLocation, useSecondaryColor);
-        }
-    }
-
-    public static void paint(RobotController rc, MapInfo paintTile) throws GameActionException {
+    /**
+     * find the worth of tile to paint
+     */
+    public static boolean tryPaint(RobotController rc, MapInfo paintTile) throws GameActionException {
         MapLocation paintLocation = paintTile.getMapLocation();
-        paint(rc, paintTile, paintLocation);
+        
+        if (rc.canAttack(paintLocation)) {
+            // prioritize enemy tile
+            if (paintTile.getPaint().isEnemy()) {
+                rc.attack(paintLocation);
+                return true;
+            }
+            else if (paintTile.getPaint() == PaintType.EMPTY) {
+                rc.attack(paintLocation);
+                return true;
+            }
+        }
+        return false;
     }
 
-    public static void paint(RobotController rc, MapLocation paintLocation) throws GameActionException {
-        MapInfo paintTile = rc.senseMapInfo(rc.getLocation());
-        paint(rc, paintTile, paintLocation);
-    }
-    
     public static void attackEnemyTower(RobotController rc, MapInfo[] nearbyTiles) throws GameActionException {
         for (MapInfo nearbyTile : nearbyTiles) {
             if (nearbyTile.hasRuin() && rc.canSenseRobotAtLocation(nearbyTile.getMapLocation())
@@ -38,7 +37,7 @@ public class Soldier extends Robot {
                 if (rc.canAttack(nearbyTile.getMapLocation())) {
                     rc.attack(nearbyTile.getMapLocation());
                 } else {
-                    Direction dir = Pathfinding.pathfindAttack(rc, nearbyTile.getMapLocation());
+                    Direction dir = Pathfinding.pathfind(rc, nearbyTile.getMapLocation());
                     if (dir != null) {
                         rc.move(dir);
                     }
@@ -48,23 +47,10 @@ public class Soldier extends Robot {
         }
         RobotPlayer.enemyTower = null;
 
-        // if no tower target, keep pressuring nearest visible enemy
-        RobotInfo[] visibleEnemies = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS, rc.getTeam().opponent());
-        RobotInfo chaseTarget = null;
-        int bestDist = Integer.MAX_VALUE;
-        for (RobotInfo enemy : visibleEnemies) {
-            int dist = rc.getLocation().distanceSquaredTo(enemy.getLocation());
-            if (enemy.getType().isTowerType()) {
-                dist -= 8;
-            }
-            if (dist < bestDist) {
-                bestDist = dist;
-                chaseTarget = enemy;
-            }
-        }
-
-        if (chaseTarget != null) {
-            Direction dir = Pathfinding.pathfindAttack(rc, chaseTarget.getLocation());
+        // if no tower, keep moving towards enemy tower
+        RobotInfo enemyTowerBot = Sensing.towerInRange(rc, rc.getType().actionRadiusSquared, false);
+        if (enemyTowerBot != null) {
+            Direction dir = Pathfinding.pathfind(rc, enemyTowerBot.getLocation());
             if (dir != null) {
                 rc.move(dir);
             }
@@ -78,58 +64,40 @@ public class Soldier extends Robot {
         }
     }
 
-    
-    //paints the tile underfoot and nearby paintable tiles within action radius
     public static void paintAroundSelf(RobotController rc) throws GameActionException {
-        // paint tile underfoot first
-        MapLocation myLoc = rc.getLocation();
-        if (rc.canAttack(myLoc)) {
-            MapInfo myTile = rc.senseMapInfo(myLoc);
-            paint(rc, myTile, myLoc);
+        MapInfo[] nearby = rc.senseNearbyMapInfos(rc.getType().actionRadiusSquared);
+
+        // prioritize enemy tiles
+        for (MapInfo tile : nearby) {
+            if (!rc.isActionReady()) return;
+            if (tile.isPassable() && tile.getPaint().isEnemy() && rc.canAttack(tile.getMapLocation())) {
+                rc.attack(tile.getMapLocation());
+            }
         }
 
-        // paint nearby tiles within action radius
-        MapInfo[] nearby = rc.senseNearbyMapInfos(rc.getType().actionRadiusSquared);
+        // fallback: emppty tiles
         for (MapInfo tile : nearby) {
-            if (!rc.isActionReady()) break;
-            MapLocation tileLoc = tile.getMapLocation();
-            if (tile.isPassable() && rc.canAttack(tileLoc)) {
-                paint(rc, tile, tileLoc);
+            if (!rc.isActionReady()) return;
+            if (tile.isPassable() && tile.getPaint() == PaintType.EMPTY && rc.canAttack(tile.getMapLocation())) {
+                rc.attack(tile.getMapLocation());
             }
         }
     }
 
-
-    // go to the nearest allied tower when health or paint is low, return true if moved
-    public static boolean retreat(RobotController rc) throws GameActionException {
-        boolean lowHealth = Robot.hasLowHealth(rc, Constants.RETREAT_HEALTH_PERCENTAGE);
-        boolean lowPaint = Robot.hasLowPaint(rc, Constants.RETREAT_PAINT_PERCENTAGE);
-
-        if (!lowHealth && !lowPaint) {
-            return false;
-        }
-
-        Direction dir = Pathfinding.returnToTower(rc);
-        if (dir != null && rc.canMove(dir)) {
-            rc.move(dir);
-            return true;
-        }
-
-        return false;
-    }
-
-
-    //go towards unpainted areas, painting tiles along the way
+    // find enemy > empty tiles
     public static boolean explore(RobotController rc) throws GameActionException {
-        // paint around before moving
         paintAroundSelf(rc);
 
-        // move toward unpainted areas
-        Direction dir = Pathfinding.exploreUnpainted(rc);
+        Direction dir = Pathfinding.exploreUnpainted(rc); 
+        
+        // fallback: find empty tiles
+        if (dir == null) {
+            dir = Pathfinding.exploreUnpainted(rc); 
+        }
+
         if (dir != null && rc.canMove(dir)) {
             rc.move(dir);
 
-            // paint around new location
             paintAroundSelf(rc);
             return true;
         }

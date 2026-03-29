@@ -1,4 +1,4 @@
-package alternative_bots_2;
+package alternative_bots_1;
 
 import battlecode.common.*;
 
@@ -49,69 +49,6 @@ public class Pathfinding {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Greedy pathfinding yang lebih agresif: tetap mendekati target, namun
-	 * memberi prioritas pada posisi yang membuka peluang menyerang enemy.
-	 */
-	public static Direction pathfindAttack(RobotController rc, MapLocation target) throws GameActionException {
-		if (target == null) {
-			return null;
-		}
-
-		MapLocation curLoc = rc.getLocation();
-		RobotInfo[] enemies = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS, rc.getTeam().opponent());
-		int actionRadius = rc.getType().actionRadiusSquared;
-
-		Direction bestDir = null;
-		int minScore = Integer.MAX_VALUE;
-
-		for (Direction dir : Constants.DIRECTIONS) {
-			if (!rc.canMove(dir)) {
-				continue;
-			}
-
-			MapLocation next = curLoc.add(dir);
-			MapInfo nextInfo = rc.senseMapInfo(next);
-			PaintType nextPaint = nextInfo.getPaint();
-
-			int score = next.distanceSquaredTo(target) * 10;
-
-			if (nextPaint.isEnemy()) {
-				score += Constants.ATTACK_MODE_ENEMY_PAINT_BONUS;
-			} else if (nextPaint == PaintType.EMPTY) {
-				score += Constants.ATTACK_MODE_EMPTY_PAINT_PENALTY;
-			} else if (nextPaint.isAlly()) {
-				score += Constants.ATTACK_MODE_ALLY_PAINT_PENALTY;
-			}
-
-			if (!canAffordMove(rc, nextPaint)) {
-				score += Constants.GREEDY_BLOCKED_PENALTY;
-			}
-
-			for (RobotInfo enemy : enemies) {
-				int distAfterMove = next.distanceSquaredTo(enemy.getLocation());
-				if (enemy.getType().isTowerType()) {
-					if (distAfterMove <= actionRadius) {
-						score -= Constants.ATTACK_MODE_IN_RANGE_TOWER_BONUS;
-					}
-					score -= Constants.ATTACK_MODE_TOWER_PROXIMITY_WEIGHT / (distAfterMove + 1);
-				} else {
-					if (distAfterMove <= actionRadius) {
-						score -= Constants.ATTACK_MODE_IN_RANGE_UNIT_BONUS;
-					}
-					score -= Constants.ATTACK_MODE_UNIT_PROXIMITY_WEIGHT / (distAfterMove + 1);
-				}
-			}
-
-			if (score < minScore) {
-				minScore = score;
-				bestDir = dir;
-			}
-		}
-
-		return bestDir;
 	}
 
 	/**

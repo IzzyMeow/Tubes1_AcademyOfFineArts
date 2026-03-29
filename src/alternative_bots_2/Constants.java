@@ -1,4 +1,4 @@
-package alternative_bots_1;
+package alternative_bots_2;
 
 import battlecode.common.*;
 
@@ -21,6 +21,13 @@ public class Constants {
     public static final int GREEDY_ENEMY_PAINT_PENALTY = 8;
     public static final int GREEDY_EMPTY_PAINT_PENALTY = 2;
     public static final int GREEDY_ALLY_PAINT_BONUS = -2;
+    public static final int ATTACK_MODE_ENEMY_PAINT_BONUS = -6;
+    public static final int ATTACK_MODE_EMPTY_PAINT_PENALTY = 0;
+    public static final int ATTACK_MODE_ALLY_PAINT_PENALTY = 3;
+    public static final int ATTACK_MODE_IN_RANGE_TOWER_BONUS = 140;
+    public static final int ATTACK_MODE_IN_RANGE_UNIT_BONUS = 70;
+    public static final int ATTACK_MODE_TOWER_PROXIMITY_WEIGHT = 130;
+    public static final int ATTACK_MODE_UNIT_PROXIMITY_WEIGHT = 60;
 
     public static final int UNSET_DISTANCE = -1;
     public static final int GLOBAL_SENSE_RADIUS = -1;
@@ -28,8 +35,8 @@ public class Constants {
     public static final int ENEMY_PAINT_MOVE_LOSS = 2;
     public static final int EMPTY_PAINT_MOVE_LOSS = 1;
 
-    public static final int RETREAT_HEALTH_PERCENTAGE = 25;
-    public static final int RETREAT_PAINT_PERCENTAGE = 20;
+    public static final int RETREAT_HEALTH_PERCENTAGE = 15;
+    public static final int RETREAT_PAINT_PERCENTAGE = 10;
 
     // Mopper
     public static final int MOPPER_SENSE_RADIUS = 2;
@@ -39,7 +46,6 @@ public class Constants {
     public static final int MOPPER_ALLY_PAINT_SCORE = 10;
     public static final int MOPPER_NEAR_LOW_ALLY_SCORE = 50;
     public static final int MOPPER_BORDER_TILE_SCORE = 5;
-    public static final int MOPPER_ENEMY_PAINT_SCORE = 20;
 
     // Splasher
     public static final int SPLASHER_ATTACK_COST = 50;
@@ -51,9 +57,9 @@ public class Constants {
     public static final int SPLASHER_EMPTY_PAINT_SCORE = 2;
 
     // Tower
-    public static final int SOLDIER_RATIO = 2;
+    public static final int SOLDIER_RATIO = 3;
     public static final int MOPPER_RATIO = 1;
-    public static final int SPLASHER_RATIO = 2;
+    public static final int SPLASHER_RATIO = 1;
     public static final int TOTAL_SPAWN_RATIO = SOLDIER_RATIO + MOPPER_RATIO + SPLASHER_RATIO;
     public static final int TOWER_AOE_ENEMY_THRESHOLD = 3;
     public static final int TOWER_UPGRADE_ROUND = 200;

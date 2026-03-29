@@ -1,11 +1,11 @@
-package alternative_bots_1;
+package alternative_bots_2;
 
 import battlecode.common.*;
 
 public class Splasher extends Robot {
 
     /**
-     * find best splash target and attack, prioritizing enemy paint and towers
+     * find best splash target and attack, prioritizing towers > robots > paint
      */
     public static void splashAttack(RobotController rc) throws GameActionException {
         MapInfo[] centerCandidates = rc.senseNearbyMapInfos(Constants.SPLASHER_ATTACK_RADIUS);
@@ -21,7 +21,6 @@ public class Splasher extends Robot {
 
             int currScore = 0;
 
-            // evaluate enemy robots
             for (RobotInfo unit : allNearbyRobots) {
                 if (unit.getTeam() == rc.getTeam()) continue;
                 int dist = center.distanceSquaredTo(unit.getLocation());
@@ -35,21 +34,14 @@ public class Splasher extends Robot {
                 }
             }
 
-            // evaluate territory
             for (MapInfo tileInfo : allMapInfos) {
                 int dist = center.distanceSquaredTo(tileInfo.getMapLocation());
 
                 if (dist <= Constants.SPLASHER_ATTACK_RADIUS) {
-                    // focus on enemy territory
                     if (tileInfo.getPaint().isEnemy() && dist <= Constants.SPLASHER_INNER_RADIUS) {
-                        currScore += (Constants.SPLASHER_ENEMY_PAINT_SCORE * 3); 
-                    } 
-                    else if (tileInfo.getPaint() == PaintType.EMPTY) {
+                        currScore += Constants.SPLASHER_ENEMY_PAINT_SCORE;
+                    } else if (tileInfo.getPaint() == PaintType.EMPTY) {
                         currScore += Constants.SPLASHER_EMPTY_PAINT_SCORE;
-                    }
-                    // avoid painting our own's tile
-                    else if (tileInfo.getPaint().isAlly()) {
-                        currScore -= (Constants.SPLASHER_EMPTY_PAINT_SCORE / 2);
                     }
                 }
             }
@@ -66,38 +58,34 @@ public class Splasher extends Robot {
     }
 
     /**
-     * move to nearest enemy, fallback to enemy tile
+     * move toward nearest enemy, prioritizing towers
      */
     public static void moveToEnemy(RobotController rc) throws GameActionException {
         RobotInfo[] visibleEnemies = rc.senseNearbyRobots(Constants.GLOBAL_SENSE_RADIUS, rc.getTeam().opponent());
         MapLocation targetLoc = null;
 
-        // prioritize enemy towers
+        // prioritize the nearest enemy, with a score bonus for towers.
+        int bestScore = Integer.MAX_VALUE;
         for (RobotInfo enemy : visibleEnemies) {
+            int score = rc.getLocation().distanceSquaredTo(enemy.getLocation());
             if (enemy.getType().isTowerType()) {
+                score -= 8;
+            }
+            if (score < bestScore) {
+                bestScore = score;
                 targetLoc = enemy.getLocation();
-                break;
             }
         }
 
-        // fallback to any enemy
-        if (targetLoc == null && visibleEnemies.length > 0) {
-            targetLoc = visibleEnemies[0].getLocation();
-        }
-
         if (targetLoc != null) {
-            Direction dir = Pathfinding.pathfind(rc, targetLoc);
+            // pathfinding towards target
+            Direction dir = Pathfinding.pathfindAttack(rc, targetLoc);
             if (dir != null && rc.canMove(dir)) {
                 rc.move(dir);
             }
         } else {
-            // if no enemy, find nearest enemy tiles
-            Direction dir = Pathfinding.exploreUnpainted(rc);
-            
-            if (dir == null) {
-                dir = Pathfinding.exploreUnpainted(rc);
-            }
-
+            // no enemy visible, advance toward center to find fights faster
+            Direction dir = Pathfinding.pathfindAttack(rc, Robot.getMapCenter(rc));
             if (dir != null && rc.canMove(dir)) {
                 rc.move(dir);
             }

@@ -1,4 +1,4 @@
-package alternative_bots_2;
+package alternative_bots_1;
 
 import battlecode.common.*;
 
@@ -52,19 +52,15 @@ public class RobotPlayer {
 
 
     public static void runSoldier(RobotController rc) throws GameActionException {
-        // 1. retreat if low HP or low paint
-        if (Soldier.retreat(rc)) {
-            return;
-        }
 
-        // 2. check for unclaimed ruin, build a tower
+        // check ruin, build tower
         MapLocation ruinLoc = Sensing.findUnclaimedRuin(rc, Constants.SOLDIER_RUIN_SEARCH_RADIUS);
         if (ruinLoc != null) {
-            // mark tower if robot can sense
+            // mark tower
             if (rc.canSenseLocation(ruinLoc)) {
                 Robot.markTower(rc, UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
 
-                // find nearest unpainted pattern tile to move toward
+                // find nearest empty tile
                 MapLocation moveTarget = ruinLoc;
                 for (MapInfo patternTile : rc.senseNearbyMapInfos(ruinLoc, Constants.RUIN_PATTERN_RADIUS_SQUARED)) {
                     if (patternTile.getMark() != patternTile.getPaint() && patternTile.getMark() != PaintType.EMPTY && !patternTile.hasRuin()) {
@@ -73,7 +69,7 @@ public class RobotPlayer {
                     }
                 }
 
-                // move toward unpainted pattern tile so we can attack it
+                // move toward empty tile
                 if (rc.isMovementReady()) {
                     Direction dir = Pathfinding.pathfind(rc, moveTarget);
                     if (dir != null && rc.canMove(dir)) {
@@ -81,7 +77,7 @@ public class RobotPlayer {
                     }
                 }
 
-                // paint pattern tiles within attack range
+                // paint tiles
                 if (rc.isActionReady()) {
                     for (MapInfo patternTile : rc.senseNearbyMapInfos(ruinLoc, Constants.RUIN_PATTERN_RADIUS_SQUARED)) {
                         if (!rc.isActionReady()) break;
@@ -95,7 +91,6 @@ public class RobotPlayer {
                     }
                 }
 
-                // try to complete the tower
                 Robot.completeTower(rc, ruinLoc);
             }
             else {
@@ -113,9 +108,8 @@ public class RobotPlayer {
 
         MapInfo[] tilesInRange = rc.senseNearbyMapInfos();
 
-        // 3. check for visible enemies, switch state to ATTACK
-        RobotInfo[] enemies = rc.senseNearbyRobots(Constants.SOLDIER_ENEMY_DETECT_RADIUS, rc.getTeam().opponent());
-        RobotInfo enemy = enemies.length > 0 ? enemies[0] : null;
+        // check for enemy towers, switch state to ATTACK
+        RobotInfo enemy = Sensing.towerInRange(rc, Constants.SOLDIER_ENEMY_DETECT_RADIUS, false);
 
         if (enemy != null || soldierState == Soldier.SoldierState.ATTACK) {
             soldierState = Soldier.SoldierState.ATTACK;
@@ -128,19 +122,18 @@ public class RobotPlayer {
                 Soldier.paintAroundSelf(rc);
             }
 
-            // if no enemies visible, return to ADVANCE
-            if (enemies.length == 0 && RobotPlayer.enemyTower == null) {
+            // if no enemies, return to ADVANCE
+            if (enemy == null && RobotPlayer.enemyTower == null) {
                 soldierState = Soldier.SoldierState.ADVANCE;
             }
 
             return;
         }
 
-        // 4. state ADVANCE, use explore()
+        // 4. state ADVANCE
         soldierState = Soldier.SoldierState.ADVANCE;
 
         if (!Soldier.explore(rc)) {
-            // explore is bool, if false do wallFollow
             if (rc.isMovementReady()) {
                 Direction dir = Pathfinding.wallFollow(rc);
 
@@ -173,20 +166,19 @@ public class RobotPlayer {
     }
 
     public static void runTower(RobotController rc) throws GameActionException {
-        // 1. for round 1 spawn soldier
+        // first, spawn soldier
         if (rc.getRoundNum() == 1) {
-            // spawn a soldier bot
             for (Direction dir : Constants.DIRECTIONS) {
                 Tower.createSoldier(rc, dir);
             }
         }
 
-        // 2. attack if enemy in range
+        // attack if enemy in range
         if (rc.isActionReady()) {
             Tower.attackLowestRobot(rc);
         }
 
-        // 3. use AoE attack if more than 3 enemies nearby
+        // use AoE attack if > 3 enemies nearby
         if (rc.isActionReady()) {
             RobotInfo[] enemy = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
 
@@ -195,12 +187,12 @@ public class RobotPlayer {
             }
         }
 
-        // 4. upgrade tower if its after 200 round
+        // upgrade tower
         if (rc.getRoundNum() >= Constants.TOWER_UPGRADE_ROUND) {
             Tower.upgradeSelf(rc);
         }
 
-        // 5. spawn unit, but reserve some chip for building a tower
+        // 5. spawn unit, but reserve some chip
         if (rc.getChips() >= Constants.TOWER_BUILD_CHIP_RESERVE) {
             if (Tower.spawnUnit(rc, spawnCount)) {
                 spawnCount++;
